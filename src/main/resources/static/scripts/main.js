@@ -12,7 +12,7 @@ $('#exampleModalLong').on('show.bs.modal', function (event) {
 
     $.ajax({
         type: 'GET',
-        url: '/dashboard/edit/' + id,
+        url: '/admin/edit/' + id,
         success: function (data) {
             console.log("Данные пользователя: ", data);
 
@@ -25,9 +25,15 @@ $('#exampleModalLong').on('show.bs.modal', function (event) {
             var rolesSelect = modal.find('.modal-body #rolesEdit');
             rolesSelect.empty(); // Очищаем текущие значения
 
-            $.each(data.roles, function (index, role) {
-                var option = new Option(role.name, role.name);
+            var allRoles = ['ROLE_ADMIN', 'ROLE_USER'];
+            $.each(allRoles, function (index, role) {
+                var option = new Option(role.replace('ROLE_', ''), role); // Удаляем ROLE_ для отображения
                 rolesSelect.append(option);
+            });
+
+            // Выбираем текущие роли пользователя
+            $.each(data.roles, function (index, userRole) {
+                rolesSelect.val(userRole.name); // Выбираем текущие роли
             });
         },
         error: function (error) {
@@ -52,10 +58,37 @@ $('#exampleModalLong').on('show.bs.modal', function (event) {
         });
         formData.roles = roles.join(',');
 
+        // Валидация
+        if (!formData.firstName || !formData.lastName || !formData.email) {
+            alert("Поля 'Имя', 'Фамилия' и 'Email' обязательны для заполнения.");
+            return;
+        }
+
+        if (formData.age < 0 || isNaN(formData.age)) {
+            alert("Возраст должен быть положительным числом.");
+            return;
+        }
+
+        if (!formData.email.match(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)) {
+            alert("Неправильный формат Email.");
+            return;
+        }
+
+        if (roles.length === 0) {
+            alert("Выберите хотя бы одну роль.");
+            return;
+        }
+
+        if (formData.password && formData.password.length < 3) {
+            alert("Пароль должен быть не менее 3 символов.");
+            return;
+        }
+
         $.ajax({
             type: 'POST',
-            url: '/dashboard/edit',
+            url: '/admin/edit',
             data: formData,
+
             success: function(data) {
                 console.log("Данные пользователя обновлены успешно");
                 // Закройте модальное окно или обновите страницу

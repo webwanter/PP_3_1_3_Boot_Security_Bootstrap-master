@@ -61,8 +61,18 @@ public class UserService implements UserDetailsService {
     }
 
     public boolean updateUser(User user) {
-        if (userRepository.findById(user.getId()).isPresent()) {
-            userRepository.save(user);
+        Optional<User> existingUser = userRepository.findById(user.getId());
+        if (existingUser.isPresent()) {
+            User userToUpdate = existingUser.get();
+            userToUpdate.setFirstName(user.getFirstName());
+            userToUpdate.setLastName(user.getLastName());
+            userToUpdate.setAge(user.getAge());
+            userToUpdate.setEmail(user.getEmail());
+            if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+                userToUpdate.setPassword(passwordEncoder.encode(user.getPassword()));
+            }
+            userToUpdate.setRoles(user.getRoles());
+            userRepository.save(userToUpdate);
             return true;
         }
         return false;

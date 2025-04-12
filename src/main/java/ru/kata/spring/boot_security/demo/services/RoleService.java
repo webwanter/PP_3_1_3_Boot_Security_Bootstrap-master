@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.kata.spring.boot_security.demo.models.Role;
 import ru.kata.spring.boot_security.demo.repositories.RoleRepository;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -22,8 +23,7 @@ public class RoleService {
     }
 
     public Role getRoleByName(String name) {
-        return roleRepository.findByName(name).orElseThrow(() -> new RuntimeException("Role not found"));
-    }
+        return roleRepository.findByName(name).orElseThrow(() -> new EntityNotFoundException("Role not found"));    }
 
     public List<Role> getAllRoles() {
         return roleRepository.findAll();
