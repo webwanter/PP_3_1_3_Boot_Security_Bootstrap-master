@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="utf-8">
+    <title>Your account</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/resources/css/style.css}">
+</head>
+
+<body>
+<div>
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>UserName</th>
+            <th>FirstName</th>
+            <th>LastName</th>
+            <th>Email</th>
+            <th>Password</th>
+            <th>Roles</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:if="${currentUser}">
+            <td th:text="${currentUser.id}"></td>
+            <td th:text="${currentUser.username}"></td>
+            <td th:text="${currentUser.firstName}"></td>
+            <td th:text="${currentUser.lastName}"></td>
+            <td th:text="${currentUser.email}"></td>
+            <td th:text="${currentUser.password}"></td>
+            <td>
+                <span th:each="role : ${currentUser.roles}" th:text="${role.name} + '; '"></span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <table>
+        <tr>
+            <td>
+                <a th:href="@{/}">Главная</a>
+            </td>
+            <td>
+                <a th:href="@{/logout}">Выход</a>
+
+            </td>
+        </tr>
+    </table>
+</div>
+</body>
+</html>
