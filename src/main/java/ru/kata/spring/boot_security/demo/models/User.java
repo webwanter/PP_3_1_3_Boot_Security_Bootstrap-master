@@ -33,6 +33,7 @@ public class User implements UserDetails {
     private String lastName;
 
     @Column(name = "age")
+    @NotNull(message = "Age should not be empty")
     @Min(value = 18, message = "Age should be at least 18")
     @Max(value = 120, message = "Age should not exceed 120")
     private int age;
@@ -44,6 +45,7 @@ public class User implements UserDetails {
     @Email(message = "Email should be valid")
     private String email;
 
+    @NotEmpty(message = "Select at least one role")
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Role> roles = new HashSet<>();
 

@@ -3,6 +3,7 @@ package ru.kata.spring.boot_security.demo.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -81,49 +82,61 @@ public class AdminController {
         model.addAttribute("rolesString", rolesString);
         model.addAttribute("allUsers", userService.allUsers());
 
-        return "dashboard";
+        return "admin";
     }
 
-    // Метод для удаления пользователя
-    @PostMapping("/delete")
-    public String deleteUser(@RequestParam("userId") Long userId, Model model) {
-        userService.deleteUser(userId);
-        return "redirect:dashboard";
+    @GetMapping("/delete/{id}")
+    @ResponseBody
+    public User getUserForDelete(@PathVariable Long id) {
+        User deleteUser = userService.findUserById(id);
+        if (deleteUser == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден");
+        }
+        return deleteUser;
     }
+
+    @PostMapping("/delete")
+    @ResponseBody
+    public ResponseEntity<?> deleteUser(@RequestParam("id") Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.ok().build();
+    }
+
 
     @GetMapping("/new_user")
     public String addUser(Model model) {
         model.addAttribute("userForm", new User());
         model.addAttribute("roles", roleService.getAllRoles());
-        return "dashboard";
+        return "admin";
     }
 
     // Метод для добавления нового пользователя
     @PostMapping("/new_user")
     public String addUser(
             @ModelAttribute("userForm") @Valid User userForm,
-            @RequestParam("roles") List<String> roles,
             BindingResult bindingResult,
             Model model
     ) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("allUsers", userService.allUsers());
-            return "dashboard";
+            model.addAttribute("roles", roleService.getAllRoles());
+            model.addAttribute("currentUser", (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+            model.addAttribute("activeTab", "new-user"); // остаться на вкладке создания пользователя
+            return "/admin";
         }
 
-        Set<Role> roleSet = roles.stream()
-                .map(roleService::getRoleByName)
-                .collect(Collectors.toSet());
 
-        userForm.setRoles(roleSet);
 
         if (!userService.saveUser(userForm)) {
             model.addAttribute("usernameError", "Пользователь с таким именем уже существует");
             model.addAttribute("allUsers", userService.allUsers());
-            return "dashboard";
+            model.addAttribute("activeTab", "new-user"); // остаться на вкладке создания пользователя
+            return "/admin";
         }
 
-        return "redirect:/dashboard";
+        userService.saveUser(userForm);
+
+        return "redirect:/admin";
     }
 
     @GetMapping("/edit/{id}")
@@ -150,7 +163,7 @@ public class AdminController {
         User updUser = userService.findUserById(id);
         if (updUser == null) {
             model.addAttribute("error", "Пользователь с ID " + id + " не найден");
-            return "redirect:/dashboard";
+            return "redirect:/admin";
         }
 
         updUser.setId(id);
@@ -170,7 +183,7 @@ public class AdminController {
         updUser.setRoles(roleSet);
 
         userService.updateUser(updUser);
-        return "redirect:/dashboard";
+        return "redirect:/admin";
     }
 
 
